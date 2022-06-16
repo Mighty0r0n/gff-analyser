@@ -1,4 +1,3 @@
-import json
 
 class GffData:
     def __init__(self, seq_id):
@@ -16,7 +15,7 @@ class GffData:
 class Bacteria:
     def __init__(self):
         self._region = ""
-        self._fasta = []
+        self._fasta = ""
         self.gff_data = []
 
     @property
