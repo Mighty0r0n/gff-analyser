@@ -1,3 +1,5 @@
+import json
+
 class GffData:
     def __init__(self, seq_id):
         self.seq_id = seq_id[0]
@@ -33,6 +35,3 @@ class Bacteria:
     def fasta(self, value: str):
         self._fasta = value
 
-    def findGffData(self, id:str):
-        for gff in self.gff_data:
-            print("")
