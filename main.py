@@ -11,7 +11,7 @@ args = parser.parse_args()
 
 ## TO-DO:
 ##
-##
+##  \n rausnehmen
 ##
 
 
@@ -26,11 +26,12 @@ def find_bacteria(name: str, bacteria_list: list):
 def read():
 
     bacteria_list = []
-    dna_seq = ''
+
 
     with open(args.file) as gff3:
         fasta_extract = False
-
+        dna_seq = ''
+        fasta_counter = -1
         for line in gff3.readlines():
             if line.startswith("##sequence-region"):
                 lineSplit = line.split(" ")
@@ -44,17 +45,18 @@ def read():
                 tmp_bacteria.gff_data.append(bact.GffData(seq_id=seq_id))
 
             elif line.startswith('##FASTA'):
+
                 fasta_extract = True
 
             elif line.startswith('>'):
-
-                if dna_seq:
+                fasta_counter += 1
+                if dna_seq != '':
+                    tmp_bacteria: bact.Bacteria = find_bacteria(name=bacteria_list[fasta_counter].region, bacteria_list=bacteria_list)
+                    tmp_bacteria.fasta += dna_seq
                     dna_seq = ''
 
             elif fasta_extract and not line.startswith('>'):
                 dna_seq += line.strip('\n')
-
-
 
 
 
