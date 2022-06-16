@@ -1,7 +1,8 @@
 import argparse as arg
+import classes.gffClasses as bact
 
 parser = arg.ArgumentParser()
-parser.add_argument('file', type = str, help = 'Dateipfad zur Datei')
+parser.add_argument('file', type=str, help='Dateipfad zur Datei')
 
 args = parser.parse_args()
 
@@ -12,35 +13,47 @@ args = parser.parse_args()
 ##
 
 
+def bacteria_exists(name: str, bacteria_list: list):
+    return next((True for bacteria in bacteria_list if bacteria.region == name), False)
 
-class Gff_data:
-    def __init__(self, seq_id, source, feature_type, feature_start, feature_end, score, strand, phase, atributes):
-        self.seq_id = seq_id
-        self.source = source
-        self.feature_type = feature_type
-        self.feature_start = feature_start
-        self.feature_end = feature_end
-        self.score = score
-        self.strand = strand
-        self.phase = phase
-        self.atributes = atributes
-        #self.row_entrys = row_entrys
+
+def find_bacteria(name: str, bacteria_list: list):
+    return next((bacteria for bacteria in bacteria_list if bacteria.region == name), None)
+
 
 def read():
-
-    class_per_region = []
-
+    dataset_counter = 0
+    fasta_counter = 1
+    bacteria_list = []
+    dna_seq = ''
     with open(args.file) as gff3:
-        for line in gff3.readlines():
-            if line.startswith('##sequence-region'):
-                seq_region = Gff_data(line.split()[1])
-                class_per_region.append(seq_region)
+        fasta_extract = False
 
-                print(seq_region.seq_id)
+        for index, line in enumerate(gff3.readlines()):
+            if line.startswith("##sequence-region"):
+                lineSplit = line.split(" ")
+                tmp_bacteria = bact.Bacteria()
+                tmp_bacteria.region = lineSplit[1]
+                bacteria_list.append(tmp_bacteria)
+            elif bacteria_exists(line.split("\t")[0], bacteria_list):
+                seq_id = line.split("\t")
+                tmp_bacteria: bact.Bacteria = find_bacteria(name=seq_id[0], bacteria_list=bacteria_list)
+                tmp_bacteria.gff_data.append(bact.GffData(seq_id=seq_id))
+            elif line.startswith('##FASTA'):
+                fasta_extract = True
+            elif line.startswith('>'):
+                dataset_counter += 1
+                if dna_seq:
+                    dna_seq = ''
+            elif fasta_extract and not line.startswith('>'):
+                dna_seq += line.strip('\n')
 
-    print(class_per_region)
-
-
+    for bacteria in bacteria_list:
+        gff_data:bact.GffData = bacteria.gff_data[0]
+        gff_data: list[bact.GffData] = bacteria.gff_data
+        for gff in gff_data:
+            print(gff.attributes)
+        # print(gff_data.attributes)
 
 
 if __name__ == "__main__":
