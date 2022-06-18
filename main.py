@@ -21,7 +21,7 @@ def find_strain(name: str, organism_list: list):
 def add_sequence(organism_list: list, dna_seq: str, fasta_counter: int):
 
     if dna_seq != '':
-        tmp_bacteria: Gffclasses.Organism= find_strain(name=organism_list[fasta_counter].strain,
+        tmp_bacteria: Gffclasses.Organism = find_strain(name=organism_list[fasta_counter].strain,
                                                         organism_list=organism_list)
         tmp_bacteria.fasta += dna_seq
         dna_seq = ''
@@ -29,14 +29,13 @@ def add_sequence(organism_list: list, dna_seq: str, fasta_counter: int):
 
 
 def read():
-
     organism_list = []
     dna_seq = ''
 
     with open(args.file) as gff3:
         fasta_extract = False
-
         fasta_counter = -2
+
         for line in gff3.readlines():
             if line.startswith("##sequence-region"):
                 strain = line.split(" ")
@@ -49,10 +48,7 @@ def read():
                 tmp_organism: Gffclasses.Organism = find_strain(name=gffrow[0], organism_list=organism_list)
                 tmp_organism.gff_data.append(Gffclasses.GffData(gffrow=gffrow))
 
-
-
             elif line.startswith('##FASTA'):
-
                 fasta_extract = True
 
             elif line.startswith('>'):
@@ -66,13 +62,9 @@ def read():
 
     return organism_list
 
+
 if __name__ == "__main__":
+
     start_time = time.time()
-
     bacteria_list = read()
-
-
-
-
-
     print("--- %s seconds ---" % (time.time() - start_time))
