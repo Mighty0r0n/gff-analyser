@@ -83,11 +83,13 @@ class GffData:
         self._attributes = value
 
 
+
+
 class Organism:
     def __init__(self):
         self._strain = ""
         self._fasta = ""
-        self._gff_data = []
+        self._gff_data:GffData = []
 
     @property
     def strain(self):
@@ -112,3 +114,11 @@ class Organism:
     @gff_data.setter
     def gff_data(self, value: str):
         self._gff_data = value
+
+
+
+
+
+
+
+
