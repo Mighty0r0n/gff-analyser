@@ -60,6 +60,8 @@ def read():
                 dna_seq += line.strip('\n')
 
     add_sequence(bacteria_list=bacteria_list, dna_seq=dna_seq, fasta_counter=fasta_counter + 1)
+    for bact in bacteria_list:
+        print(bact.fasta[0:10])
 
 if __name__ == "__main__":
     start_time = time.time()
