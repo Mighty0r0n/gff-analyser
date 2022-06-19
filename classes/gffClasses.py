@@ -9,7 +9,25 @@ class GffData:
         self._strand = gffrow[6]
         self._phase = gffrow[7]
         self._attributes = gffrow[8].split(";")
-        self.dnaseq = ''
+        self._dnaseq = ''
+
+    def get_complementary_string(self, reverted_sequence):
+        complementary_string = ''
+        for base in reverted_sequence:
+            match base:
+                case 'A':
+                    complementary_string += 'T'
+                case 'T':
+                    complementary_string += 'A'
+                case 'C':
+                    complementary_string += 'G'
+                case 'G':
+                    complementary_string += 'C'
+                case 'N':
+                    complementary_string += 'N'
+        # To-Do: Mode for generating the complementary string, without changing the classobject(With argparse)
+        self.dnaseq = complementary_string
+        return complementary_string
 
     @property
     def seq_id(self):
@@ -83,7 +101,13 @@ class GffData:
     def attributes(self, value: list):
         self._attributes = value
 
+    @property
+    def dnaseq(self):
+        return self._dnaseq
 
+    @dnaseq.setter
+    def dnaseq(self, value: str):
+        self._dnaseq = value
 
 
 class Organism:
@@ -92,13 +116,16 @@ class Organism:
         self._fasta = ""
         self._gff_data = []
 
-    def setAnnotatedDnaSeq(self):
+    def set_annotated_dna_seq(self):
         for element in self.gff_data:
-            if element.strand == '+':
-                element.dnaseq = self.fasta[int(element.feature_start) - 1 : int(element.feature_end)]
-            elif element.strand == '-':
-                print('Hi')
 
+            if element.feature_type == 'region':
+                pass
+            elif element.strand == '+':
+                element.dnaseq = self.fasta[int(element.feature_start) - 1: int(element.feature_end)]
+            elif element.strand == '-':
+                reverted_sequence = self.fasta[int(element.feature_end) - 1: int(element.feature_start) - 2: -1]
+                element.get_complementary_string(reverted_sequence=reverted_sequence)
 
     @property
     def strain(self):
@@ -123,13 +150,3 @@ class Organism:
     @gff_data.setter
     def gff_data(self, value: object):
         self._gff_data = value
-
-
-
-
-
-
-
-
-
-
