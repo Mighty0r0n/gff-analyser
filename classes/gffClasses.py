@@ -1,3 +1,5 @@
+
+
 class GffData:
     def __init__(self, gffrow):
         self._seq_id = gffrow[0]

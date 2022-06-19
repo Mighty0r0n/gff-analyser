@@ -3,10 +3,8 @@ import classes.gffClasses as Gffclasses
 import time
 
 
-# None Object für Gffdata wird erstellt, wenn neuer Organismuse eingelesen wird. Warum?
-
 parser = arg.ArgumentParser()
-parser.add_argument('file', type=str, help='Dateipfad zur Datei')
+parser.add_argument('file', type=str, help='filepath needed')
 
 args = parser.parse_args()
 
