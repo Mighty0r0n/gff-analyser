@@ -11,19 +11,19 @@ parser.add_argument('file', type=str, help='Dateipfad zur Datei')
 args = parser.parse_args()
 
 
-def strain_exists(name: str, organism_list: list):
-    return next((True for organism in organism_list if organism.strain == name), False)
+def strain_exists(name: str, data: list):
+    return next((True for organism in data if organism.strain == name), False)
 
 
-def find_strain(name: str, organism_list: list):
-    return next((organism for organism in organism_list if organism.strain == name), None)
+def find_strain(name: str, data: list):
+    return next((organism for organism in data if organism.strain == name), None)
 
 
-def add_sequence(organism_list: list, dna_seq: str, fasta_counter: int):
+def add_sequence(data: list, dna_seq: str, fasta_counter: int):
 
     if dna_seq != '':
-        tmp_organism: Gffclasses.Organism = find_strain(name=organism_list[fasta_counter].strain,
-                                                        organism_list=organism_list)
+        tmp_organism: Gffclasses.Organism = find_strain(name=data[fasta_counter].strain,
+                                                        data=data)
         tmp_organism.fasta += dna_seq
         dna_seq = ''
     return dna_seq
@@ -46,7 +46,7 @@ def build_gff_class():
 
             elif strain_exists(line.split("\t")[0], organism_list):
                 gffrow = line.split("\t")
-                tmp_organism: Gffclasses.Organism = find_strain(name=gffrow[0], organism_list=organism_list)
+                tmp_organism: Gffclasses.Organism = find_strain(name=gffrow[0], data=organism_list)
                 tmp_organism.gff_data.append(Gffclasses.GffData(gffrow=gffrow))
 
             elif line.startswith('##FASTA'):
@@ -54,17 +54,15 @@ def build_gff_class():
 
             elif line.startswith('>'):
                 fasta_counter += 1
-                dna_seq = add_sequence(organism_list=organism_list, dna_seq=dna_seq, fasta_counter=fasta_counter)
+                dna_seq = add_sequence(data=organism_list, dna_seq=dna_seq, fasta_counter=fasta_counter)
 
             elif fasta_extract and not line.startswith('>'):
                 dna_seq += line.strip('\n')
 
-    add_sequence(organism_list=organism_list, dna_seq=dna_seq, fasta_counter=fasta_counter + 1)
+    add_sequence(data=organism_list, dna_seq=dna_seq, fasta_counter=fasta_counter + 1)
 
     for element in organism_list:
-        element.setAnnotatedDnaSeq()
-        # for entry in element.gff_data:
-        #     print(entry.seq_id)
+        element.set_annotated_dna_seq()
 
     return organism_list
 
