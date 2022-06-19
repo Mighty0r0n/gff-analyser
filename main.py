@@ -63,7 +63,7 @@ def build_gff_class():
 
     for element in organism_list:
         element.set_annotated_dna_seq()
-#test
+
     return organism_list
 
 
