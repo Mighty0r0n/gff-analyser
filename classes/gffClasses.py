@@ -9,6 +9,7 @@ class GffData:
         self._strand = gffrow[6]
         self._phase = gffrow[7]
         self._attributes = gffrow[8].split(";")
+        self.dnaseq = ''
 
     @property
     def seq_id(self):
@@ -31,7 +32,7 @@ class GffData:
         return self._feature_type
 
     @feature_type.setter
-    def feature_type(self, value: str):
+    def feature_type(self, value: int):
         self._feature_type = value
 
     @property
@@ -89,7 +90,15 @@ class Organism:
     def __init__(self):
         self._strain = ""
         self._fasta = ""
-        self._gff_data:GffData = []
+        self._gff_data = []
+
+    def setAnnotatedDnaSeq(self):
+        for element in self.gff_data:
+            if element.strand == '+':
+                element.dnaseq = self.fasta[int(element.feature_start) - 1 : int(element.feature_end)]
+            elif element.strand == '-':
+                print('Hi')
+
 
     @property
     def strain(self):
@@ -112,8 +121,10 @@ class Organism:
         return self._gff_data
 
     @gff_data.setter
-    def gff_data(self, value: str):
+    def gff_data(self, value: object):
         self._gff_data = value
+
+
 
 
 

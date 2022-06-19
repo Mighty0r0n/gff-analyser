@@ -2,6 +2,7 @@ import argparse as arg
 import classes.gffClasses as Gffclasses
 import time
 
+
 # None Object für Gffdata wird erstellt, wenn neuer Organismuse eingelesen wird. Warum?
 
 parser = arg.ArgumentParser()
@@ -21,14 +22,14 @@ def find_strain(name: str, organism_list: list):
 def add_sequence(organism_list: list, dna_seq: str, fasta_counter: int):
 
     if dna_seq != '':
-        tmp_bacteria: Gffclasses.Organism = find_strain(name=organism_list[fasta_counter].strain,
+        tmp_organism: Gffclasses.Organism = find_strain(name=organism_list[fasta_counter].strain,
                                                         organism_list=organism_list)
-        tmp_bacteria.fasta += dna_seq
+        tmp_organism.fasta += dna_seq
         dna_seq = ''
     return dna_seq
 
 
-def read():
+def build_gff_class():
     organism_list = []
     dna_seq = ''
 
@@ -60,11 +61,17 @@ def read():
 
     add_sequence(organism_list=organism_list, dna_seq=dna_seq, fasta_counter=fasta_counter + 1)
 
+    for element in organism_list:
+        element.setAnnotatedDnaSeq()
+        # for entry in element.gff_data:
+        #     print(entry.seq_id)
+
     return organism_list
 
 
 if __name__ == "__main__":
 
     start_time = time.time()
-    bacteria_list = read()
+    organism_list = build_gff_class()
+
     print("--- %s seconds ---" % (time.time() - start_time))
