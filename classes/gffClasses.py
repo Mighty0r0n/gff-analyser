@@ -102,6 +102,7 @@ class Organism:
         self._gff_data = []
 
     def set_annotated_dna_seq(self):
+
         for element in self.gff_data:
 
             if element.feature_type == 'region':

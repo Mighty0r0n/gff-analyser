@@ -1,7 +1,7 @@
 import argparse as arg
 import classes.gffClasses as Gffclasses
 import time
-from helperfunctions import find_strain, strain_exists
+from helperfunctions import find_strain, strain_exists, print_multiple_fasta
 
 
 parser = arg.ArgumentParser()
@@ -54,6 +54,7 @@ def build_gff_class():
     add_sequence(data=organism_class_objects, dna_seq=dna_seq, fasta_counter=fasta_counter + 1)
 
     for element in organism_class_objects:
+
         element.set_annotated_dna_seq()
 
     return organism_class_objects
@@ -64,5 +65,6 @@ if __name__ == "__main__":
     start_time = time.time()
 
     organism_list = build_gff_class()
+    print_multiple_fasta(data_list=organism_list, filename=args.file.split('/')[-1])
 
     print("--- %s seconds ---" % (time.time() - start_time))
