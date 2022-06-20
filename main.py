@@ -1,20 +1,14 @@
 import argparse as arg
 import classes.gffClasses as Gffclasses
 import time
+from helperfunctions import find_strain, strain_exists
 
 
 parser = arg.ArgumentParser()
 parser.add_argument('file', type=str, help='filepath needed')
 
+
 args = parser.parse_args()
-
-
-def strain_exists(name: str, data: list):
-    return next((True for organism in data if organism.strain == name), False)
-
-
-def find_strain(name: str, data: list):
-    return next((organism for organism in data if organism.strain == name), None)
 
 
 def add_sequence(data: list, dna_seq: str, fasta_counter: int):
@@ -28,7 +22,7 @@ def add_sequence(data: list, dna_seq: str, fasta_counter: int):
 
 
 def build_gff_class():
-    organism_list = []
+    organism_class_objects = []
     dna_seq = ''
 
     with open(args.file) as gff3:
@@ -40,11 +34,11 @@ def build_gff_class():
                 strain = line.split(" ")
                 tmp_organism = Gffclasses.Organism()
                 tmp_organism.strain = strain[1]
-                organism_list.append(tmp_organism)
+                organism_class_objects.append(tmp_organism)
 
-            elif strain_exists(line.split("\t")[0], organism_list):
+            elif strain_exists(line.split("\t")[0], organism_class_objects):
                 gffrow = line.split("\t")
-                tmp_organism: Gffclasses.Organism = find_strain(name=gffrow[0], data=organism_list)
+                tmp_organism: Gffclasses.Organism = find_strain(name=gffrow[0], data=organism_class_objects)
                 tmp_organism.gff_data.append(Gffclasses.GffData(gffrow=gffrow))
 
             elif line.startswith('##FASTA'):
@@ -52,22 +46,23 @@ def build_gff_class():
 
             elif line.startswith('>'):
                 fasta_counter += 1
-                dna_seq = add_sequence(data=organism_list, dna_seq=dna_seq, fasta_counter=fasta_counter)
+                dna_seq = add_sequence(data=organism_class_objects, dna_seq=dna_seq, fasta_counter=fasta_counter)
 
             elif fasta_extract and not line.startswith('>'):
                 dna_seq += line.strip('\n')
 
-    add_sequence(data=organism_list, dna_seq=dna_seq, fasta_counter=fasta_counter + 1)
+    add_sequence(data=organism_class_objects, dna_seq=dna_seq, fasta_counter=fasta_counter + 1)
 
-    for element in organism_list:
+    for element in organism_class_objects:
         element.set_annotated_dna_seq()
 
-    return organism_list
+    return organism_class_objects
 
 
 if __name__ == "__main__":
 
     start_time = time.time()
+
     organism_list = build_gff_class()
 
     print("--- %s seconds ---" % (time.time() - start_time))

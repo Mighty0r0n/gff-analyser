@@ -1,3 +1,4 @@
+from helperfunctions import get_complementary_string
 
 
 class GffData:
@@ -12,24 +13,6 @@ class GffData:
         self._phase = gffrow[7]
         self._attributes = gffrow[8].split(";")
         self._dnaseq = ''
-
-    def get_complementary_string(self, reverted_sequence):
-        complementary_string = ''
-        for base in reverted_sequence:
-            match base:
-                case 'A':
-                    complementary_string += 'T'
-                case 'T':
-                    complementary_string += 'A'
-                case 'C':
-                    complementary_string += 'G'
-                case 'G':
-                    complementary_string += 'C'
-                case 'N':
-                    complementary_string += 'N'
-        # To-Do: Mode for generating the complementary string, without changing the classobject(With argparse)
-        self.dnaseq = complementary_string
-        return complementary_string
 
     @property
     def seq_id(self):
@@ -122,12 +105,12 @@ class Organism:
         for element in self.gff_data:
 
             if element.feature_type == 'region':
-                pass
+                element.dnaseq = self.fasta
             elif element.strand == '+':
                 element.dnaseq = self.fasta[int(element.feature_start) - 1: int(element.feature_end)]
             elif element.strand == '-':
-                reverted_sequence = self.fasta[int(element.feature_end) - 1: int(element.feature_start) - 2: -1]
-                element.get_complementary_string(reverted_sequence=reverted_sequence)
+                unreverted_sequence = self.fasta[int(element.feature_start) - 1: int(element.feature_end)]
+                element.dnaseq = get_complementary_string(sequence=unreverted_sequence)
 
     @property
     def strain(self):
