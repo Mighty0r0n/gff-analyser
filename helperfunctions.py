@@ -28,7 +28,8 @@ def print_multiple_fasta(data_list: list, filename: str):
     with open(filename.replace('.gff3', '.mpfa'), 'w') as file:
         for element in data_list:
 
-            file.write("##sequence-region   {}\n".format(element.strain))
+            file.write("##sequence-region {strain}\n".format(strain=element.strain))
 
             for entry in element.gff_data[1:]:
-                file.write(">{}\n{}\n".format(entry.attributes[0].split('=')[-1], entry.dnaseq))
+                file.write(">{idname}\n{sequence}\n".format(idname=entry.attributes[0].split('=')[-1],
+                                                            sequence=entry.dnaseq))

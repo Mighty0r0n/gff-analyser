@@ -35,7 +35,7 @@ class GffData:
         return self._feature_type
 
     @feature_type.setter
-    def feature_type(self, value: int):
+    def feature_type(self, value: str):
         self._feature_type = value
 
     @property
@@ -99,16 +99,27 @@ class Organism:
     def __init__(self):
         self._strain = ""
         self._fasta = ""
+        self._printable_fasta = ""
         self._gff_data = []
 
-    def set_annotated_dna_seq(self):
+    def set_annotated_dna_seq(self, fasta_extract: bool, filename):
+
+        if fasta_extract:
+            with open(filename.replace('.gff3', '.fa'), 'w') as fasta_file:
+                fasta_file.write("##sequence-region {strain}\n".format(strain=self.strain))
 
         for element in self.gff_data:
 
             if element.feature_type == 'region':
                 element.dnaseq = self.fasta
+                if fasta_extract:
+                    with open(filename.replace('.gff3', '.fa'), 'a') as fasta_file:
+                        fasta_file.write(">{idname}\n{sequence}\n".format(idname=element.attributes[0].split('=')[-1],
+                                                                          sequence=self._printable_fasta))
+
             elif element.strand == '+':
                 element.dnaseq = self.fasta[int(element.feature_start) - 1: int(element.feature_end)]
+
             elif element.strand == '-':
                 unreverted_sequence = self.fasta[int(element.feature_start) - 1: int(element.feature_end)]
                 element.dnaseq = get_complementary_string(sequence=unreverted_sequence)
@@ -128,6 +139,14 @@ class Organism:
     @fasta.setter
     def fasta(self, value: str):
         self._fasta = value
+
+    @property
+    def printable_fasta(self):
+        return self._printable_fasta
+
+    @printable_fasta.setter
+    def printable_fasta(self, value: str):
+        self._printable_fasta = value
 
     @property
     def gff_data(self):
