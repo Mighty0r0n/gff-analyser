@@ -23,7 +23,7 @@ def add_sequence(data: list, dna_seq: str, fasta_counter: int, printable_seq: st
     return dna_seq
 
 
-def build_gff_class():
+def build_gff3_class():
 
     organism_class_objects = []
     dna_seq = ''
@@ -67,12 +67,27 @@ def build_gff_class():
 
     return organism_class_objects
 
+def build_sc_class():
+
+    object_handler = []
+
+    with open(args.file) as gtf_file:
+
+        for line in gtf_file:
+            gtf_row = line.split('\t')
+            object_handler.append(Gffclasses.GffData(gffrow=gtf_row))
+    for row in object_handler:
+        if row.feature_type == 'promotors':
+            print(row.feature_type)
+
 
 if __name__ == "__main__":
 
     start_time = time.time()
 
-    organism_list = build_gff_class()
-    print_multiple_fasta(data_list=organism_list, filename=args.file.split('/')[-1])
+    build_sc_class()
+
+    #organism_list = build_gff3_class()
+    #print_multiple_fasta(data_list=organism_list, filename=args.file.split('/')[-1])
 
     print("--- %s seconds ---" % (time.time() - start_time))
