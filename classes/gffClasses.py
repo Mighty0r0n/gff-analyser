@@ -1,7 +1,25 @@
-#from helperfunctions import get_complementary_string
+# from helperfunctions import get_complementary_string
 
 
 # to-do set dna seq in GffData umlagern // May set only a warning if no fasta is provided
+
+def get_complementary_string(sequence: str):
+    complementary_string = ''
+    for base in sequence[::-1]:
+        match base:
+            case 'A':
+                complementary_string += 'T'
+            case 'T':
+                complementary_string += 'A'
+            case 'C':
+                complementary_string += 'G'
+            case 'G':
+                complementary_string += 'C'
+            case 'N':
+                complementary_string += 'N'
+
+    return complementary_string
+
 
 class GffData:
     def __init__(self, gffrow):
@@ -16,27 +34,9 @@ class GffData:
         self._attributes = gffrow[8].split(";")
         self._dnaseq = ''
 
-    def get_complementary_string(self, sequence: str):
-        complementary_string = ''
-        for base in sequence[::-1]:
-            match base:
-                case 'A':
-                    complementary_string += 'T'
-                case 'T':
-                    complementary_string += 'A'
-                case 'C':
-                    complementary_string += 'G'
-                case 'G':
-                    complementary_string += 'C'
-                case 'N':
-                    complementary_string += 'N'
-
-        return complementary_string
-
     def get_whole_line(self):
 
         tmp_attribute = ''
-
 
         # Warum sind in den gff3 files die Attribute ohne ; am Ende aber in den gtf's mit??
         # Bug hier noch in der Darstellung für gff3 files
@@ -48,7 +48,6 @@ class GffData:
             # Adding at last entry ; for formating purposes
             if entry != entry[-1]:
                 tmp_attribute += ';'
-
 
         whole_line = (self.seq_id + '\t' +
                       self.source + '\t' +

@@ -11,6 +11,8 @@ parser.add_argument('-f', '--fasta', action='store_true', help='Set Flag for a F
 
 args = parser.parse_args()
 
+file = args.file
+fasta = args.fasta
 
 def add_sequence(data: list, dna_seq: str, fasta_counter: int, printable_seq: str):
 
@@ -29,7 +31,7 @@ def build_gff3_class(file):
     dna_seq = ''
     printable_seq = ''
 
-    with open(args.file) as gff3:
+    with open(file) as gff3:
         fasta_extract = False
         fasta_counter = -2
         headerless_file = False
@@ -40,7 +42,7 @@ def build_gff3_class(file):
         if not gff3.readline().startswith('#'):
             headerless_file = True
             tmp_organism = Gffclasses.Organism()
-            tmp_organism.strain = args.file.split('\\')[-1]
+            tmp_organism.strain = file.split('\\')[-1]
             organism_class_objects.append(tmp_organism)
 
         for line in gff3.readlines():
@@ -56,7 +58,7 @@ def build_gff3_class(file):
             elif strain_exists(line.split("\t")[0], organism_class_objects) or headerless_file:
                 gffrow = line.split("\t")
                 if not headerless_file:
-                    tmp_organism.Gffclasses.Organism = find_strain(name=gffrow[0], data=organism_class_objects)
+                    tmp_organism = find_strain(name=gffrow[0], data=organism_class_objects)
 
                 tmp_organism.gff_data.append(Gffclasses.GffData(gffrow=gffrow))
 
@@ -72,7 +74,7 @@ def build_gff3_class(file):
 
             elif fasta_extract and not line.startswith('>'):
                 dna_seq += line.strip('\n')
-                if args.fasta:
+                if fasta:
                     printable_seq += line
 
     add_sequence(data=organism_class_objects, dna_seq=dna_seq, fasta_counter=fasta_counter + 1,
@@ -81,19 +83,9 @@ def build_gff3_class(file):
 
     for element in organism_class_objects:
 
-
-        element.set_annotated_dna_seq(fasta_extract=args.fasta, filename=args.file.split('/')[-1])
+        element.set_annotated_dna_seq(fasta_extract=fasta, filename=file.split('/')[-1])
 
     return organism_class_objects
-
-
-
-
-
-
-
-
-
 
 # not needed right now, delete after gene bug
 def build_sc_class():
@@ -103,7 +95,7 @@ def build_sc_class():
     gene_count = 0
     header_check = False
 
-    with open(args.file) as gtf_file:
+    with open(file) as gtf_file:
 
 
 
@@ -125,16 +117,11 @@ if __name__ == "__main__":
 
     start_time = time.time()
 
-
-
     organism_list = build_gff3_class(file=args.file)
 
 
     for element in organism_list:
         element.generate_feature_gtf(Gffdata_list=organism_list)
-
-    #generate_feature_gtf(object_list=organism_list, wanted_feature='gene')
-
 
     #print_multiple_fasta(data_list=organism_list, filename=args.file.split('/')[-1])
 
