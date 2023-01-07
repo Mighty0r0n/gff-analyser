@@ -1,7 +1,7 @@
 import argparse as arg
 import classes.gffClasses as Gffclasses
 import time
-from helperfunctions import find_strain, strain_exists, print_multiple_fasta
+from helperfunctions import find_strain, strain_exists
 
 
 parser = arg.ArgumentParser()
@@ -56,7 +56,7 @@ def build_gff3_class(file):
             elif strain_exists(line.split("\t")[0], organism_class_objects) or headerless_file:
                 gffrow = line.split("\t")
                 if not headerless_file:
-                    tmp_organism: Gffclasses.Organism = find_strain(name=gffrow[0], data=organism_class_objects)
+                    tmp_organism.Gffclasses.Organism = find_strain(name=gffrow[0], data=organism_class_objects)
 
                 tmp_organism.gff_data.append(Gffclasses.GffData(gffrow=gffrow))
 
@@ -88,28 +88,14 @@ def build_gff3_class(file):
 
 
 
-def generate_feature_gtf(object_list, wanted_feature):
-
-    for element in object_list:
-
-        if not element.strain.endswith('.gtf'):
-            element.strain += '.gtf'
-
-        #for row in element.gff_data:
-
-        filename = element.strain.strip('.gtf') + '_' + wanted_feature + '_.gtf'
-
-        with open(filename, 'a') as gtf_file:
-            for row in element.gff_data:
-                if row.feature_type == wanted_feature:
-                    gtf_file.write(row.get_whole_line())
 
 
 
 
 
 
-#not needed right now, may delete or use for short tests
+
+# not needed right now, delete after gene bug
 def build_sc_class():
 
     object_handler = []
@@ -127,7 +113,8 @@ def build_sc_class():
     for row in object_handler:
         line_count += 1
 
-        if row.feature_type == 'exon':
+        # ONLY the gene's are counted +1 more than they are... Why?!?!
+        if row.feature_type == 'gene':
             gene_count += 1
 
     print(line_count, '  Lines\n')
@@ -138,10 +125,17 @@ if __name__ == "__main__":
 
     start_time = time.time()
 
-    #build_sc_class()
+
 
     organism_list = build_gff3_class(file=args.file)
-    generate_feature_gtf(object_list=organism_list, wanted_feature='gene')
+
+
+    for element in organism_list:
+        element.generate_feature_gtf(Gffdata_list=organism_list)
+
+    #generate_feature_gtf(object_list=organism_list, wanted_feature='gene')
+
+
     #print_multiple_fasta(data_list=organism_list, filename=args.file.split('/')[-1])
 
     print("--- %s seconds ---" % (time.time() - start_time))

@@ -1,4 +1,4 @@
-from helperfunctions import get_complementary_string
+#from helperfunctions import get_complementary_string
 
 
 # to-do set dna seq in GffData umlagern // May set only a warning if no fasta is provided
@@ -16,13 +16,36 @@ class GffData:
         self._attributes = gffrow[8].split(";")
         self._dnaseq = ''
 
+    def get_complementary_string(self, sequence: str):
+        complementary_string = ''
+        for base in sequence[::-1]:
+            match base:
+                case 'A':
+                    complementary_string += 'T'
+                case 'T':
+                    complementary_string += 'A'
+                case 'C':
+                    complementary_string += 'G'
+                case 'G':
+                    complementary_string += 'C'
+                case 'N':
+                    complementary_string += 'N'
+
+        return complementary_string
 
     def get_whole_line(self):
 
         tmp_attribute = ''
 
+
+        # Warum sind in den gff3 files die Attribute ohne ; am Ende aber in den gtf's mit??
+        # Bug hier noch in der Darstellung für gff3 files
+
+        # Adding list object to tmp_string to get a printable attribute line
         for entry in self.attributes:
             tmp_attribute += entry
+
+            # Adding at last entry ; for formating purposes
             if entry != entry[-1]:
                 tmp_attribute += ';'
 
@@ -125,10 +148,47 @@ class GffData:
 
 class Organism:
     def __init__(self):
+
         self._strain = ""
         self._fasta = ""
         self._printable_fasta = ""
         self._gff_data = []
+
+    def generate_feature_gtf(self, Gffdata_list):
+
+        features = self.count_features()
+        feature_keys = list(features.keys())
+
+        feature_count = -1
+
+        for feature in features.keys():
+            feature_count += 1
+
+            print('Generating ' + feature + '-File')
+            for element in Gffdata_list:
+
+                if not element.strain.endswith('.gtf'):
+                    element.strain += '.gtf'
+
+
+                filename = element.strain.strip('.gtf') + '_' + feature_keys[feature_count] + '_.gtf'
+
+                with open(filename, 'a') as gtf_file:
+                    for row in element.gff_data:
+                        if row.feature_type == feature_keys[feature_count]:
+                            gtf_file.write(row.get_whole_line())
+
+
+    def count_features(self):
+
+        feature_dict = {}
+        for entry in self.gff_data:
+            if entry.feature_type not in feature_dict.keys():
+                feature_dict.update({entry.feature_type: 0})
+            feature_dict[entry.feature_type] += 1
+
+        return feature_dict
+
 
     def set_annotated_dna_seq(self, fasta_extract: bool, filename):
 
@@ -150,7 +210,19 @@ class Organism:
 
             elif element.strand == '-':
                 unreverted_sequence = self.fasta[int(element.feature_start) - 1: int(element.feature_end)]
-                element.dnaseq = get_complementary_string(sequence=unreverted_sequence)
+                element.dnaseq = element.get_complementary_string(sequence=unreverted_sequence)
+
+    def print_multiple_fasta(self, data_list: list, filename: str):
+        with open(filename.replace('.gff3', '.mpfa'), 'w') as file:
+            for element in data_list:
+
+                file.write("##sequence-region {strain}\n".format(strain=element.strain))
+
+                for entry in element.gff_data[1:]:
+                    file.write(">{idname}\n{sequence}\n".format(idname=entry.attributes[0].split('=')[-1],
+                                                                sequence=entry.dnaseq))
+
+
 
     @property
     def strain(self):
