@@ -54,7 +54,7 @@ def build_gff3_class(file):
                 tmp_organism.strain = strain[1]
                 organism_class_objects.append(tmp_organism)
 
-
+            # Possible Bug, if headerless file contains a sequence
             elif strain_exists(line.split("\t")[0], organism_class_objects) or headerless_file:
                 gffrow = line.split("\t")
                 if not headerless_file:
