@@ -23,7 +23,7 @@ def add_sequence(data: list, dna_seq: str, fasta_counter: int, printable_seq: st
     return dna_seq
 
 
-def build_gff3_class():
+def build_gff3_class(file):
 
     organism_class_objects = []
     dna_seq = ''
@@ -32,18 +32,35 @@ def build_gff3_class():
     with open(args.file) as gff3:
         fasta_extract = False
         fasta_counter = -2
+        headerless_file = False
+
+        #change
+
+        # Check if the input is a headerless file
+        if not gff3.readline().startswith('#'):
+            headerless_file = True
+            tmp_organism = Gffclasses.Organism()
+            tmp_organism.strain = args.file.split('\\')[-1]
+            organism_class_objects.append(tmp_organism)
 
         for line in gff3.readlines():
+
+
             if line.startswith("##sequence-region"):
                 strain = line.split(" ")
                 tmp_organism = Gffclasses.Organism()
                 tmp_organism.strain = strain[1]
                 organism_class_objects.append(tmp_organism)
 
-            elif strain_exists(line.split("\t")[0], organism_class_objects):
+
+            elif strain_exists(line.split("\t")[0], organism_class_objects) or headerless_file:
                 gffrow = line.split("\t")
-                tmp_organism: Gffclasses.Organism = find_strain(name=gffrow[0], data=organism_class_objects)
+                if not headerless_file:
+                    tmp_organism: Gffclasses.Organism = find_strain(name=gffrow[0], data=organism_class_objects)
+
                 tmp_organism.gff_data.append(Gffclasses.GffData(gffrow=gffrow))
+
+
 
             elif line.startswith('##FASTA'):
                 fasta_extract = True
@@ -61,33 +78,70 @@ def build_gff3_class():
     add_sequence(data=organism_class_objects, dna_seq=dna_seq, fasta_counter=fasta_counter + 1,
                  printable_seq=printable_seq)
 
+
     for element in organism_class_objects:
+
 
         element.set_annotated_dna_seq(fasta_extract=args.fasta, filename=args.file.split('/')[-1])
 
     return organism_class_objects
 
+
+
+def generate_feature_gtf(object_list, wanted_feature):
+
+    for element in object_list:
+
+        if not element.strain.endswith('.gtf'):
+            element.strain += '.gtf'
+
+        #for row in element.gff_data:
+
+        filename = element.strain.strip('.gtf') + '_' + wanted_feature + '_.gtf'
+
+        with open(filename, 'a') as gtf_file:
+            for row in element.gff_data:
+                if row.feature_type == wanted_feature:
+                    gtf_file.write(row.get_whole_line())
+
+
+
+
+
+
+#not needed right now, may delete or use for short tests
 def build_sc_class():
 
     object_handler = []
+    line_count = 0
+    gene_count = 0
+    header_check = False
 
     with open(args.file) as gtf_file:
+
+
 
         for line in gtf_file:
             gtf_row = line.split('\t')
             object_handler.append(Gffclasses.GffData(gffrow=gtf_row))
     for row in object_handler:
-        if row.feature_type == 'promotors':
-            print(row.feature_type)
+        line_count += 1
+
+        if row.feature_type == 'exon':
+            gene_count += 1
+
+    print(line_count, '  Lines\n')
+    print(gene_count, '  genes\n')
 
 
 if __name__ == "__main__":
 
     start_time = time.time()
 
-    build_sc_class()
+    #build_sc_class()
 
-    #organism_list = build_gff3_class()
+    organism_list = build_gff3_class(file=args.file)
+    generate_feature_gtf(object_list=organism_list, wanted_feature='gene')
     #print_multiple_fasta(data_list=organism_list, filename=args.file.split('/')[-1])
 
     print("--- %s seconds ---" % (time.time() - start_time))

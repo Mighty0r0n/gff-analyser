@@ -1,6 +1,8 @@
 from helperfunctions import get_complementary_string
 
 
+# to-do set dna seq in GffData umlagern // May set only a warning if no fasta is provided
+
 class GffData:
     def __init__(self, gffrow):
         self._seq_id = gffrow[0]
@@ -13,6 +15,29 @@ class GffData:
         self._phase = gffrow[7]
         self._attributes = gffrow[8].split(";")
         self._dnaseq = ''
+
+
+    def get_whole_line(self):
+
+        tmp_attribute = ''
+
+        for entry in self.attributes:
+            tmp_attribute += entry
+            if entry != entry[-1]:
+                tmp_attribute += ';'
+
+
+        whole_line = (self.seq_id + '\t' +
+                      self.source + '\t' +
+                      self.feature_type + '\t' +
+                      self.feature_start + '\t' +
+                      self.feature_end + '\t' +
+                      self.score + '\t' +
+                      self.strand + '\t' +
+                      self.phase + '\t' +
+                      tmp_attribute
+                      )
+        return whole_line
 
     @property
     def seq_id(self):
@@ -95,6 +120,9 @@ class GffData:
         self._dnaseq = value
 
 
+
+
+
 class Organism:
     def __init__(self):
         self._strain = ""
@@ -153,5 +181,5 @@ class Organism:
         return self._gff_data
 
     @gff_data.setter
-    def gff_data(self, value: object):
+    def gff_data(self, value: GffData):
         self._gff_data = value
