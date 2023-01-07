@@ -209,7 +209,7 @@ class Organism:
 
             elif element.strand == '-':
                 unreverted_sequence = self.fasta[int(element.feature_start) - 1: int(element.feature_end)]
-                element.dnaseq = element.get_complementary_string(sequence=unreverted_sequence)
+                element.dnaseq = get_complementary_string(sequence=unreverted_sequence)
 
     def print_multiple_fasta(self, data_list: list, filename: str):
         with open(filename.replace('.gff3', '.mpfa'), 'w') as file:

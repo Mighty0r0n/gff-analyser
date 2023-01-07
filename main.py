@@ -1,5 +1,5 @@
 import argparse as arg
-import classes.gffClasses as Gffclasses
+from classes import gffClasses as Gffclasses
 import time
 from helperfunctions import find_strain, strain_exists
 
