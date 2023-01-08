@@ -43,6 +43,8 @@ def build_gff3_class(file):
             headerless_file = True
             tmp_organism = gffClasses.Organism()
             tmp_organism.strain = file.split('\\')[-1]
+
+
             organism_class_objects.append(tmp_organism)
 
         for line in gff3.readlines():
@@ -112,16 +114,22 @@ def build_sc_class():
     print(line_count, '  Lines\n')
     print(gene_count, '  genes\n')
 
+def test():
+    return print('Error')
 
 if __name__ == "__main__":
 
     start_time = time.time()
 
+
+
     organism_list = build_gff3_class(file=args.file)
 
 
+
     for element in organism_list:
-        element.generate_feature_gtf(Gffdata_list=organism_list)
+        features = element.count_features()
+        element.generate_feature_gtf(Gffdata_list=organism_list, feature_keys=features)
 
     #print_multiple_fasta(data_list=organism_list, filename=args.file.split('/')[-1])
 
