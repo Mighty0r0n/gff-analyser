@@ -1,5 +1,4 @@
-# from helperfunctions import get_complementary_string
-
+import os
 
 # to-do set dna seq in GffData umlagern // May set only a warning if no fasta is provided
 
@@ -49,12 +48,14 @@ class GffData:
             if entry != entry[-1]:
                 tmp_attribute += ';'
 
-        whole_line = "{seq_id}\t{source}\t{feature_type}\t{feature_start}\t{feature_end}\t{score}\t{strand}\t{phase}\t{tmp_attribute}"
 
 
-        return whole_line.format(seq_id=self.seq_id, source=self.source, feature_type=self.feature_type,
-                     feature_start=self.feature_start, feature_end=self.feature_end, score=self.score,
-                     strand=self.strand, phase=self.phase, tmp_attribute=tmp_attribute)
+        whole_line = "{seq_id}\t{source}\t{feature_type}\t{feature_start}\t{feature_end}\t{score}\t{strand}\t{phase}\t{tmp_attribute}".format(
+            seq_id=self.seq_id, source=self.source, feature_type=self.feature_type,
+            feature_start=self.feature_start, feature_end=self.feature_end, score=self.score,
+            strand=self.strand, phase=self.phase, tmp_attribute=tmp_attribute)
+
+        return whole_line
 
     @property
     def seq_id(self):
@@ -151,13 +152,18 @@ class Organism:
     def generate_feature_gtf(self, Gffdata_list, feature_keys):
     #feature_list from .count_features
 
+        try:
+            os.mkdir('out')
+        except:
+            print('out already exist, skipping creation')
 
         #features = self.count_features()
         #feature_keys = list(features.keys())
 
         feature_count = -1
+        feature_list = list(feature_keys.keys())
 
-        for feature in list(feature_keys.keys()):
+        for feature in feature_list:
             feature_count += 1
 
             print('Generating ' + feature + '-File')
@@ -167,11 +173,13 @@ class Organism:
                     element.strain += '.gtf'
 
 
-                filename = 'out\\' + element.strain.strip('.gtf') + '_' + feature_keys[feature_count] + '_.gtf'
+                filename = "out/{strain}_{feature}_.gtf".format(strain=element.strain.strip('.gtf'),
+                                                                 feature=feature_list[feature_count])
+                #filename = 'out\\' + element.strain.strip('.gtf') + '_' + list(feature_keys.keys())[feature_count] + '_.gtf'
 
                 with open(filename, 'a') as gtf_file:
                     for row in element.gff_data:
-                        if row.feature_type == feature_keys[feature_count]:
+                        if row.feature_type == feature_list[feature_count]:
                             gtf_file.write(row.get_whole_line())
 
 

@@ -42,7 +42,7 @@ def build_gff3_class(file):
         if not gff3.readline().startswith('#'):
             headerless_file = True
             tmp_organism = gffClasses.Organism()
-            tmp_organism.strain = file.split('\\')[-1]
+            tmp_organism.strain = file.split('/')[-1]
 
 
             organism_class_objects.append(tmp_organism)
