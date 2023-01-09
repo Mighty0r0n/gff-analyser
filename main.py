@@ -24,6 +24,8 @@ def add_sequence(data: list, dna_seq: str, fasta_counter: int, printable_seq: st
         dna_seq = ''
     return dna_seq
 
+def header_check():
+    return True
 
 def build_gff3_class(file):
 
@@ -31,53 +33,55 @@ def build_gff3_class(file):
     dna_seq = ''
     printable_seq = ''
 
-    with open(file) as gff3:
-        fasta_extract = False
-        fasta_counter = -2
-        headerless_file = False
+    gff3_gen = (row for row in open(file).readlines())
 
-        #change
+   # with open(file) as gff3_gen:
+    fasta_extract = False
+    fasta_counter = -2
 
-        # Check if the input is a headerless file
-        if not gff3.readline().startswith('#'):
-            headerless_file = True
+    headerless_file = False
+
+    #change
+
+    # Check if the input is a headerless file
+    if header_check():
+        headerless_file = True
+        tmp_organism = gffClasses.Organism()
+        tmp_organism.strain = file.split('/')[-1]
+
+        organism_class_objects.append(tmp_organism)
+
+    for line in gff3_gen:
+
+
+        if line.startswith("##sequence-region"):
+            strain = line.split(" ")
             tmp_organism = gffClasses.Organism()
-            tmp_organism.strain = file.split('/')[-1]
-
-
+            tmp_organism.strain = strain[1]
             organism_class_objects.append(tmp_organism)
 
-        for line in gff3.readlines():
+        # Possible Bug, if headerless file contains a sequence
+        elif strain_exists(line.split("\t")[0], organism_class_objects) or headerless_file:
+            gffrow = line.split("\t")
+            if not headerless_file:
+                tmp_organism = find_strain(name=gffrow[0], data=organism_class_objects)
 
-
-            if line.startswith("##sequence-region"):
-                strain = line.split(" ")
-                tmp_organism = gffClasses.Organism()
-                tmp_organism.strain = strain[1]
-                organism_class_objects.append(tmp_organism)
-
-            # Possible Bug, if headerless file contains a sequence
-            elif strain_exists(line.split("\t")[0], organism_class_objects) or headerless_file:
-                gffrow = line.split("\t")
-                if not headerless_file:
-                    tmp_organism = find_strain(name=gffrow[0], data=organism_class_objects)
-
-                tmp_organism.gff_data.append(gffClasses.GffData(gffrow=gffrow))
+            tmp_organism.gff_data.append(gffClasses.GffData(gffrow=gffrow))
 
 
 
-            elif line.startswith('##FASTA'):
-                fasta_extract = True
+        elif line.startswith('##FASTA'):
+            fasta_extract = True
 
-            elif line.startswith('>'):
-                fasta_counter += 1
-                dna_seq = add_sequence(data=organism_class_objects, dna_seq=dna_seq, fasta_counter=fasta_counter,
-                                       printable_seq=printable_seq)
+        elif line.startswith('>'):
+            fasta_counter += 1
+            dna_seq = add_sequence(data=organism_class_objects, dna_seq=dna_seq, fasta_counter=fasta_counter,
+                                   printable_seq=printable_seq)
 
-            elif fasta_extract and not line.startswith('>'):
-                dna_seq += line.strip('\n')
-                if fasta:
-                    printable_seq += line
+        elif fasta_extract and not line.startswith('>'):
+            dna_seq += line.strip('\n')
+            if fasta:
+                printable_seq += line
 
     add_sequence(data=organism_class_objects, dna_seq=dna_seq, fasta_counter=fasta_counter + 1,
                  printable_seq=printable_seq)
