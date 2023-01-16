@@ -1,23 +1,9 @@
 import os
+from helperfunctions import get_complementary_string
 
 # to-do set dna seq in GffData umlagern // May set only a warning if no fasta is provided
 
-def get_complementary_string(sequence: str):
-    complementary_string = ''
-    for base in sequence[::-1]:
-        match base:
-            case 'A':
-                complementary_string += 'T'
-            case 'T':
-                complementary_string += 'A'
-            case 'C':
-                complementary_string += 'G'
-            case 'G':
-                complementary_string += 'C'
-            case 'N':
-                complementary_string += 'N'
 
-    return complementary_string
 
 
 class GffData:
@@ -25,15 +11,15 @@ class GffData:
         self._seq_id = gffrow[0]
         self._source = gffrow[1]
         self._feature_type = gffrow[2]
-        self._feature_start = gffrow[3]
-        self._feature_end = gffrow[4]
+        self._feature_start = int(gffrow[3])
+        self._feature_end = int(gffrow[4])
         self._score = gffrow[5]
         self._strand = gffrow[6]
         self._phase = gffrow[7]
         self._attributes = gffrow[8].split(";")
         self._dnaseq = ''
 
-    def get_whole_line(self):
+    def get_whole_line(self, start, end):
 
         tmp_attribute = ''
 
@@ -42,7 +28,7 @@ class GffData:
 
         # Adding list object to tmp_string to get a printable attribute line
         for entry in self.attributes:
-            tmp_attribute += entry
+            tmp_attribute += entry.strip('\n')
 
             # Adding at last entry ; for formating purposes
             if entry != entry[-1]:
@@ -52,7 +38,7 @@ class GffData:
 
         whole_line = "{seq_id}\t{source}\t{feature_type}\t{feature_start}\t{feature_end}\t{score}\t{strand}\t{phase}\t{tmp_attribute}".format(
             seq_id=self.seq_id, source=self.source, feature_type=self.feature_type,
-            feature_start=self.feature_start, feature_end=self.feature_end, score=self.score,
+            feature_start=start, feature_end=end, score=self.score,
             strand=self.strand, phase=self.phase, tmp_attribute=tmp_attribute)
 
         return whole_line
@@ -149,7 +135,7 @@ class Organism:
         self._printable_fasta = ""
         self._gff_data = []
 
-    def generate_feature_gtf(self, Gffdata_list, feature_keys):
+    def generate_feature_gtf(self, gffdata_list, feature_keys):
     #feature_list from .count_features
 
         try:
@@ -167,20 +153,73 @@ class Organism:
             feature_count += 1
 
             print('Generating ' + feature + '-File')
-            for element in Gffdata_list:
+            for element in gffdata_list:
 
                 if not element.strain.endswith('.gtf'):
                     element.strain += '.gtf'
 
 
-                filename = "out/{strain}_{feature}_.gtf".format(strain=element.strain.strip('.gtf'),
+                filename = "out\\{strain}.{feature}.gtf".format(strain=element.strain.strip('.gtf'),
                                                                  feature=feature_list[feature_count])
-                #filename = 'out\\' + element.strain.strip('.gtf') + '_' + list(feature_keys.keys())[feature_count] + '_.gtf'
 
-                with open(filename, 'a') as gtf_file:
+                # getting raw annotated feature files
+                with open(filename, 'w') as gtf_file:
+
+                    row_counter = 0
                     for row in element.gff_data:
+                        row_counter += 1
                         if row.feature_type == feature_list[feature_count]:
-                            gtf_file.write(row.get_whole_line())
+                            gtf_file.write(row.get_whole_line(start=row.feature_start, end=row.feature_end))
+                            gtf_file.write('\n')
+
+
+    def generate_promotor_gtf(self, gffdata_list, promotor_distance=2000):
+        try:
+            os.mkdir('out')
+        except:
+            print('out already exist, skipping creation')
+
+        for element in gffdata_list:
+
+            feature = 'gene'
+            filename_promotor = "out\\{strain}.{feature}.promotor.gtf".format(strain=element.strain.strip('.gtf'),
+                                                            feature=feature)
+            with open(filename_promotor, 'w') as promotor_file:
+                print('Generating Promotor-File')
+                row_counter = 0
+                for row in element.gff_data:
+                    row_counter += 1
+                    if row.feature_type == feature and row.strand == '+':
+                        # for positive strands
+                        promotor_file.write(row.get_whole_line(start=row.feature_start - promotor_distance, end=row.feature_start))
+                        promotor_file.write('\n')
+                    elif row.feature_type == feature and row.strand == '-':
+                        promotor_file.write(row.get_whole_line(start=row.feature_end, end=row.feature_end + promotor_distance))
+                        promotor_file.write('\n')
+
+    def generate_tss_gtf(self, gffdata_list, tss_distance=100):
+
+
+            feature = 'gene'
+            for element in gffdata_list:
+            # Getting the TSS file
+                filename_tss = "out\\{strain}.{feature}.TSS.gtf".format(strain=element.strain.strip('.gtf'),
+                                                                      feature=feature)
+
+
+                with open(filename_tss, 'w') as tss_file:
+                    print('Generating TSS-File')
+                    for row in element.gff_data:
+                        if row.feature_type == feature and row.strand == '+':
+                            # for positive strands
+                            tss_file.write(row.get_whole_line(start=row.feature_start, end=row.feature_start + tss_distance))
+                            tss_file.write('\n')
+                        elif row.feature_type == feature and row.strand == '-':
+                            tss_file.write(row.get_whole_line(start=row.feature_end - tss_distance, end=row.feature_end ))
+                            tss_file.write('\n')
+
+
+
 
 
     def count_features(self):
